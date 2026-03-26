@@ -35,7 +35,7 @@ conv_param = np.array([0.070, 0.25])#np.array([0.020, 0.05])
 
 def step(pain, energy, x, action, time, sig, NPY, pain_profile):
     P_input = 4/(np.sqrt(2*np.pi*sig**2))*np.exp(-0.5*time**2/sig**2) + pain_profile[0]*1/(np.sqrt(2*np.pi*pain_profile[2]**2))*np.exp(-0.5*(time-pain_profile[1])**2/pain_profile[2]**2)    
-    x = x + (-x+pain)/5 + P_input - 0.007*action #- NPY*x
+    x = x + (-x+pain)/5 + P_input - 0.0007*action #- NPY*x
     energy = energy - energy*conv_param[1] + action
     pain = nonlinearity(x)
     return pain, energy, x
@@ -46,7 +46,7 @@ def step_for_duration(pain, energy, x, duration, time, sig, NPY, pain_profile):
     for t in range(duration):
 
         P_input = 4/(np.sqrt(2*np.pi*sig**2))*np.exp(-0.5*time**2/sig**2) + pain_profile[0]*1/(np.sqrt(2*np.pi*pain_profile[2]**2))*np.exp(-0.5*(time+t-pain_profile[1])**2/pain_profile[2]**2)
-        x = x + (-x+pain)/5 + P_input - 0.007 #- NPY*x
+        x = x + (-x+pain)/5 + P_input - 0.0007 #- NPY*x
         energy = energy - energy*conv_param[1] + 1        
         pain = nonlinearity(x)
 
@@ -297,7 +297,7 @@ gamma = 1-1/(nb_steps+3000)
 LEARNING_RATE = 5e-4
 capacity = (nb_steps+3000)*100
 
-num_episodes = 150 #model does not show much improvement after 110 episodes, but we can run more if we want to see more improvement.
+num_episodes = 300
 print_every = 5
 hidden_dim = 128
 min_eps = 0.01
