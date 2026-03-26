@@ -35,8 +35,8 @@ conv_param = np.array([0.070, 0.25])#np.array([0.020, 0.05])
 
 def step(pain, energy, x, action, time, sig, NPY, pain_profile):
     P_input = 4/(np.sqrt(2*np.pi*sig**2))*np.exp(-0.5*time**2/sig**2) + pain_profile[0]*1/(np.sqrt(2*np.pi*pain_profile[2]**2))*np.exp(-0.5*(time-pain_profile[1])**2/pain_profile[2]**2)    
-    x = x + (-x+pain)/5 + P_input - 0.007*(1-action) #- NPY*x
-    energy = energy - energy*conv_param[1] + (1-action)   
+    x = x + (-x+pain)/5 + P_input - 0.007*action #- NPY*x
+    energy = energy - energy*conv_param[1] + action
     pain = nonlinearity(x)
     return pain, energy, x
 
@@ -102,15 +102,26 @@ def select_duration(timestep, NPY):
             return round(temp)
 
 
-def run_episode(agent, eps, pain_profile):
+def run_episode(agent, eps, pain_profile, all_states=None, all_actions=None, all_rewards=None):
     """Play an episode and train
     Args:
         agent (Agent): agent will train and get action        
         eps (float): eps-greedy for exploration
+        all_states: list to store all states
+        all_actions: list to store all actions
+        all_rewards: list to store all rewards
 
     Returns:
         int: reward earned in this episode
     """
+    # Initialize logging lists if not provided
+    if all_states is None:
+        all_states = []
+    if all_actions is None:
+        all_actions = []
+    if all_rewards is None:
+        all_rewards = []
+    
     NPY = 0#0.0075*(np.random.rand() > 0.75)#0.0011*(np.random.rand() > 0.75)
     time_steps = nb_steps + 3000
     state = np.array([0., 0.])
@@ -147,6 +158,11 @@ def run_episode(agent, eps, pain_profile):
 
         # imm_reward(next_state1, next_state2)
 
+        # Log state, action, reward
+        all_states.append(state)
+        all_actions.append(action)
+        all_rewards.append(reward)
+
         total_reward += reward
 
         # Store the transition in memory
@@ -164,7 +180,7 @@ def run_episode(agent, eps, pain_profile):
 
         state = next_state
 
-    return total_reward
+    return total_reward, all_states, all_actions, all_rewards
 
 
 def run_sim(agent, eps, NPY, pain_profile):
@@ -215,13 +231,21 @@ def train(load_model):
     avg_scores = []
     rew = 0
     time_start = time.time()
+    
+    # Initialize logging lists for all episodes
+    all_states_log = []
+    all_actions_log = []
+    all_rewards_log = []
 
     for i_episode in range(num_episodes):
         eps = epsilon_annealing(
             i_episode+max_eps_episode*load_model, max_eps_episode, min_eps)
         pain_profile = np.array([3.0+np.random.rand(), 1800+np.random.rand()
                                 * 400, 560+np.random.rand()*200])
-        score = run_episode(agent, eps, pain_profile)
+        score, states_ep, actions_ep, rewards_ep = run_episode(agent, eps, pain_profile, all_states_log, all_actions_log, all_rewards_log)
+        
+        # Save checkpoint for each episode
+        agent.save_models(suffix=f"_ep{i_episode}")
 
         scores_array.append(score)
         avg_scores.append(
@@ -241,7 +265,13 @@ def train(load_model):
 
             if i_episode>=200 and rew>-80:
                 break
-    agent.save_models()
+    agent.save_models(suffix="_final")
+    
+    # Save logging data
+    np.save("all_states.npy", np.array(all_states_log, dtype=object))
+    np.save("all_actions.npy", np.array([a.cpu().numpy() if hasattr(a, 'cpu') else a for a in all_actions_log], dtype=object))
+    np.save("all_rewards.npy", np.array(all_rewards_log, dtype=object))
+    
     return scores_array
 
 
@@ -267,7 +297,7 @@ gamma = 1-1/(nb_steps+3000)
 LEARNING_RATE = 5e-4
 capacity = (nb_steps+3000)*100
 
-num_episodes = 300
+num_episodes = 150 #model does not show much improvement after 110 episodes, but we can run more if we want to see more improvement.
 print_every = 5
 hidden_dim = 128
 min_eps = 0.01

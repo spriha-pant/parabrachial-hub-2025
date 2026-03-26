@@ -77,9 +77,10 @@ class QNetwork(nn.Module):
         return x
      
         
-    def save_checkpoint(self):
+    def save_checkpoint(self, filename=None):
+        if filename is None: filename = self.checkpoint_file
         print('... saving checkpoint ...')
-        torch.save(self.state_dict(), self.checkpoint_file)
+        torch.save(self.state_dict(), filename)
 
     def load_checkpoint(self):
         print('... loading checkpoint ...')

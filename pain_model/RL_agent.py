@@ -70,9 +70,9 @@ class Agent(object):
             self.q_target.load_state_dict(self.q_local.state_dict())
             self.q_target.eval()
             
-    def save_models(self):
-        self.q_local.save_checkpoint()
-        self.q_target.save_checkpoint()
+    def save_models(self, suffix=""):
+        self.q_local.save_checkpoint(filename=f"q_local{suffix}.pth")
+        self.q_target.save_checkpoint(filename=f"q_target{suffix}.pth")
 
 
     def load_models(self):
