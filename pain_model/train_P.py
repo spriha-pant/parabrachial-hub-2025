@@ -34,7 +34,7 @@ conv_param = np.array([0.070, 0.25])#np.array([0.020, 0.05])
 
 
 def step(pain, energy, x, action, time, sig, NPY, pain_profile):
-    P_input = 4/(np.sqrt(2*np.pi*sig**2))*np.exp(-0.5*time**2/sig**2) + pain_profile[0]*1/(np.sqrt(2*np.pi*pain_profile[2]**2))*np.exp(-0.5*(time-pain_profile[1])**2/pain_profile[2]**2)    
+    P_input = 22/(np.sqrt(2*np.pi*sig**2))*np.exp(-0.5*time**2/sig**2) + pain_profile[0]*1/(np.sqrt(2*np.pi*pain_profile[2]**2))*np.exp(-0.5*(time-pain_profile[1])**2/pain_profile[2]**2)    
     x = x + (-x+pain)/5 + P_input - 0.035*(1-action)
     energy = energy - energy*conv_param[1] + 0.07*(1-action)
     pain = nonlinearity(x)
@@ -45,7 +45,7 @@ def step_for_duration(pain, energy, x, duration, time, sig, NPY, pain_profile):
     # make duration amount of steps in the dynamics, return the end state and change in pain
     for t in range(duration):
 
-        P_input = 4/(np.sqrt(2*np.pi*sig**2))*np.exp(-0.5*time**2/sig**2) + pain_profile[0]*1/(np.sqrt(2*np.pi*pain_profile[2]**2))*np.exp(-0.5*(time+t-pain_profile[1])**2/pain_profile[2]**2)
+        P_input = 22/(np.sqrt(2*np.pi*sig**2))*np.exp(-0.5*time**2/sig**2) + pain_profile[0]*1/(np.sqrt(2*np.pi*pain_profile[2]**2))*np.exp(-0.5*(time+t-pain_profile[1])**2/pain_profile[2]**2)
         x = x + (-x+pain)/5 + P_input - 0.035
         energy = energy - energy*conv_param[1] + 0.07 
         pain = nonlinearity(x)
@@ -240,7 +240,7 @@ def train(load_model):
     for i_episode in range(num_episodes):
         eps = epsilon_annealing(
             i_episode+max_eps_episode*load_model, max_eps_episode, min_eps)
-        pain_profile = np.array([3.0+np.random.rand(), 1800+np.random.rand()
+        pain_profile = np.array([125+10*np.random.rand(), 1800+np.random.rand()
                                 * 400, 560+np.random.rand()*200])
         score, states_ep, actions_ep, rewards_ep = run_episode(agent, eps, pain_profile, all_states_log, all_actions_log, all_rewards_log)
         
@@ -336,7 +336,7 @@ ax.set_ylabel('Reward',fontsize=20)
 ax.set_xlabel('Iteration number',fontsize=20)
 
 # visualize actions
-st, act, rew, x = run_sim(agent, 0, 0, np.array([3.5, 2000, 660]))
+st, act, rew, x = run_sim(agent, 0, 0, np.array([130, 2000, 660]))
 
 bhv_ = np.array(np.insert(act,0,1))[1:]-np.array(np.insert(act,0,1))[0:-1]
 begins = np.where(bhv_ == -1)[0]
@@ -352,7 +352,7 @@ print(rew, np.mean(bout_durs1), np.mean(bout_durs2))
 
 fig,ax = plt.subplots(figsize=(10,5))
 ax.plot(np.arange(0,60,60/3600),np.array(st[0:3600])[:, 0], linewidth=2.5)
-ax.plot(np.arange(0,60,60/3600),conv_param[0]*np.array(st[0:3600])[:, 1], linewidth=2.5)
+ax.plot(np.arange(0,60,60/3600),np.array(st[0:3600])[:, 1], linewidth=2.5)
 #ax.plot(x)
 ax.tick_params(axis='both',which='major',labelsize=20)
 ax.spines.right.set_visible(False)
