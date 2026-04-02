@@ -29,14 +29,14 @@ FD2 = scipy.io.loadmat('data/bouts2_FD')
 rng = default_rng()
 nb_steps = 600  # amount of steps
 scale = 12000/nb_steps
-conv_param = np.array([0.035, 0.2])#np.array([0.020, 0.05])
+conv_param = np.array([0.07, 0.25])#np.array([0.020, 0.05])
 
 
 
 def step(pain, energy, x, action, time, sig, NPY, pain_profile):
-    P_input = 8/(np.sqrt(2*np.pi*sig**2))*np.exp(-0.5*time**2/sig**2) + pain_profile[0]*1/(np.sqrt(2*np.pi*pain_profile[2]**2))*np.exp(-0.5*(time-pain_profile[1])**2/pain_profile[2]**2)    
-    x = x + (-x+pain)/5 + P_input - 0.035*(1-action)
-    energy = energy - energy*conv_param[1] + 0.07*(1-action)
+    P_input = 10/(np.sqrt(2*np.pi*sig**2))*np.exp(-0.5*time**2/sig**2) + pain_profile[0]*1/(np.sqrt(2*np.pi*pain_profile[2]**2))*np.exp(-0.5*(time-pain_profile[1])**2/pain_profile[2]**2)    
+    x = x + (-x+pain)/5 + P_input - 0.007*(1-action)
+    energy = energy - energy*conv_param[1] + (1-action)
     pain = nonlinearity(x)
     return pain, energy, x
 
@@ -45,9 +45,9 @@ def step_for_duration(pain, energy, x, duration, time, sig, NPY, pain_profile):
     # make duration amount of steps in the dynamics, return the end state and change in pain
     for t in range(duration):
 
-        P_input = 8/(np.sqrt(2*np.pi*sig**2))*np.exp(-0.5*time**2/sig**2) + pain_profile[0]*1/(np.sqrt(2*np.pi*pain_profile[2]**2))*np.exp(-0.5*(time+t-pain_profile[1])**2/pain_profile[2]**2)
-        x = x + (-x+pain)/5 + P_input - 0.035
-        energy = energy - energy*conv_param[1] + 0.07 
+        P_input = 10/(np.sqrt(2*np.pi*sig**2))*np.exp(-0.5*time**2/sig**2) + pain_profile[0]*1/(np.sqrt(2*np.pi*pain_profile[2]**2))*np.exp(-0.5*(time+t-pain_profile[1])**2/pain_profile[2]**2)
+        x = x + (-x+pain)/5 + P_input - 0.007
+        energy = energy - energy*conv_param[1] + 1
         pain = nonlinearity(x)
 
     return pain, energy, x
@@ -240,7 +240,7 @@ def train(load_model):
     for i_episode in range(num_episodes):
         eps = epsilon_annealing(
             i_episode+max_eps_episode*load_model, max_eps_episode, min_eps)
-        pain_profile = np.array([10+np.random.rand(), 1800+np.random.rand()
+        pain_profile = np.array([40+np.random.rand(), 1800+np.random.rand()
                                 * 400, 560+np.random.rand()*200])
         score, states_ep, actions_ep, rewards_ep = run_episode(agent, eps, pain_profile, all_states_log, all_actions_log, all_rewards_log)
         
