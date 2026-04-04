@@ -34,8 +34,8 @@ conv_param = np.array([0.07, 0.25])#np.array([0.020, 0.05])
 
 
 def step(pain, energy, x, action, time, sig, NPY, pain_profile):
-    P_input = 10/(np.sqrt(2*np.pi*sig**2))*np.exp(-0.5*time**2/sig**2) + pain_profile[0]*1/(np.sqrt(2*np.pi*pain_profile[2]**2))*np.exp(-0.5*(time-pain_profile[1])**2/pain_profile[2]**2)    
-    x = x + (-x+pain)/5 + P_input - 0.007*(1-action)
+    P_input = 8/(np.sqrt(2*np.pi*sig**2))*np.exp(-0.5*time**2/sig**2) + pain_profile[0]*1/(np.sqrt(2*np.pi*pain_profile[2]**2))*np.exp(-0.5*(time-pain_profile[1])**2/pain_profile[2]**2)    
+    x = x + (-x+pain)/5 + P_input - 0.001*(1-action)
     energy = energy - energy*conv_param[1] + (1-action)
     pain = nonlinearity(x)
     return pain, energy, x
@@ -45,8 +45,8 @@ def step_for_duration(pain, energy, x, duration, time, sig, NPY, pain_profile):
     # make duration amount of steps in the dynamics, return the end state and change in pain
     for t in range(duration):
 
-        P_input = 10/(np.sqrt(2*np.pi*sig**2))*np.exp(-0.5*time**2/sig**2) + pain_profile[0]*1/(np.sqrt(2*np.pi*pain_profile[2]**2))*np.exp(-0.5*(time+t-pain_profile[1])**2/pain_profile[2]**2)
-        x = x + (-x+pain)/5 + P_input - 0.007
+        P_input = 8/(np.sqrt(2*np.pi*sig**2))*np.exp(-0.5*time**2/sig**2) + pain_profile[0]*1/(np.sqrt(2*np.pi*pain_profile[2]**2))*np.exp(-0.5*(time+t-pain_profile[1])**2/pain_profile[2]**2)
+        x = x + (-x+pain)/5 + P_input - 0.001
         energy = energy - energy*conv_param[1] + 1
         pain = nonlinearity(x)
 
